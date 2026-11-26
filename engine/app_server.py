@@ -242,6 +242,9 @@ class App:
         }
 
     def handle(self, path: str, body: dict) -> tuple[int, dict]:
+        if path.startswith("/api/scout/"):
+            import scout_bridge
+            return scout_bridge.handle(path, body)
         if path == "/api/state":
             return 200, self.state()
         if path == "/api/settings":

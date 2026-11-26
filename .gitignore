@@ -30,3 +30,5 @@ __pycache__/
 
 # The test copy of the app (engine/sandbox.py)
 sandbox/
+
+/scout/scout

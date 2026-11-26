@@ -6,6 +6,7 @@
 <title>Design Job Finder</title>
 <link rel="icon" href="/static/icon.svg">
 <link rel="stylesheet" href="/static/app.css">
+<link rel="stylesheet" href="/static/scout.css">
 </head>
 <body>
 
@@ -311,6 +312,41 @@
   <span id="test-current">Test copy</span>
   <select id="test-scenario" aria-label="Start over from"></select>
 </div>
+
+
+<section id="scout" hidden aria-label="Opportunity Scout">
+    <div id="scout-panel" hidden>
+        <h2>Beyond Your Search</h2>
+        <div>
+            Discover public remote jobs or explore the wider web. Double-click any query to search it directly.
+            Green queries are generated; blue queries are custom.
+        </div>
+        <form id="scout-form">
+            <input id="scout-input"
+                   maxlength="512"
+                   placeholder="What else should we look for?"
+                   aria-label="New search query">
+            <button type="submit">Add query</button>
+            <button type="button" id="scout-refresh">
+                Refresh suggestions
+            </button>
+        </form>
+        <p id="scout-status" role="status"></p>
+        <div id="scout-results"></div>
+    </div>
+    <div id="scout-bar">
+        <span id="scout-brand">OPPORTUNITY SCOUT</span>
+        <div id="scout-queries"></div>
+        <button id="scout-add">+ Query</button>
+        <button id="scout-scan">Scan</button>
+        <button id="scout-explore">Explore Web</button>
+        <button id="scout-toggle"
+                aria-expanded="false"
+                aria-controls="scout-panel">Expand ▲</button>
+    </div>
+</section>
+<script defer src="/static/scout.js"></script>
 <script src="/static/app.js"></script>
+
 </body>
 </html>
