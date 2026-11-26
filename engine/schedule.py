@@ -15,9 +15,12 @@ import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from settings import DATA, ROOT, SANDBOX
+from settings import DATA, ROOT, SANDBOX, PACKAGED
 
-LABEL = "com.productdesignjobfinder.weekly"
+LABEL = (
+    "com.productdesignjobfinder.scout.weekly"
+    if PACKAGED else "com.productdesignjobfinder.weekly"
+)
 WEEKDAY, HOUR, MINUTE = 1, 9, 0  # Monday, 9:00
 
 
@@ -36,7 +39,7 @@ def plist_path() -> Path:
 
 
 def plist_content(root: Path = ROOT, python: str = sys.executable) -> dict:
-    logs = root / "logs"
+    logs = (DATA if PACKAGED else root) / "logs"
     return {
         "Label": LABEL,
         "ProgramArguments": [python, str(root / "engine" / "scheduled_run.py")],
@@ -45,6 +48,9 @@ def plist_content(root: Path = ROOT, python: str = sys.executable) -> dict:
         "StandardOutPath": str(logs / "scheduled.log"),
         "StandardErrorPath": str(logs / "scheduled.log"),
         "ProcessType": "Background",
+        **({"EnvironmentVariables": {
+            "JOBSEARCH_SCOUT_PACKAGED": "1"
+        }} if PACKAGED else {}),
     }
 
 
@@ -67,7 +73,7 @@ def turn_on() -> None:
         return
     path = plist_path()
     path.parent.mkdir(parents=True, exist_ok=True)
-    (ROOT / "logs").mkdir(exist_ok=True)
+    (DATA / "logs").mkdir(exist_ok=True)
     domain = f"gui/{os.getuid()}"
     _launchctl("bootout", f"{domain}/{LABEL}")  # in case an older one is loaded
     with open(path, "wb") as f:

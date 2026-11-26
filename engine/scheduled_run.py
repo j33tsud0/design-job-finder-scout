@@ -6,9 +6,9 @@ import subprocess
 import sys
 from datetime import datetime
 
-from settings import ROOT
+from settings import ROOT, DATA
 
-SUMMARY = ROOT / "logs" / "scheduled_summary.json"
+SUMMARY = DATA / "logs" / "scheduled_summary.json"
 
 
 def notify(message: str) -> None:

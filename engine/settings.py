@@ -16,8 +16,17 @@ from pathlib import Path
 import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
-SANDBOX = bool(os.environ.get("JOBSEARCH_DATA_DIR", "").strip())
-DATA = Path(os.environ["JOBSEARCH_DATA_DIR"]).expanduser().resolve() if SANDBOX else ROOT
+PACKAGED = os.environ.get("JOBSEARCH_SCOUT_PACKAGED") == "1"
+SANDBOX = bool(os.environ.get("JOBSEARCH_DATA_DIR", "").strip()) and not PACKAGED
+DATA = (
+    Path.home() / "Library" / "Application Support" / "Design Job Finder Scout"
+    if PACKAGED else
+    Path(os.environ["JOBSEARCH_DATA_DIR"]).expanduser().resolve()
+    if SANDBOX else ROOT
+)
+
+if PACKAGED:
+    DATA.mkdir(mode=0o700, parents=True, exist_ok=True)
 CONFIG_PATH = DATA / "config.yaml"
 ENV_PATH = DATA / ".env"
 
