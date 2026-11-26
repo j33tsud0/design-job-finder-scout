@@ -119,6 +119,11 @@ class Updater:
         return self.process is not None and self.process.poll() is None
 
     def start(self, in_window: bool) -> dict:
+        from settings import PACKAGED
+
+        if PACKAGED:
+            raise ValueError("Scout Edition cannot use the upstream installer.")
+
         if self.busy():
             return self.status()
         self.log.parent.mkdir(exist_ok=True)

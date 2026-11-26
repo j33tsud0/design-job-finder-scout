@@ -60,6 +60,22 @@ jobs:
         run: |
           python -m pytest tests/ -q
 
+      - name: Install runtime packaging tool
+        run: brew install uv
+
+      - name: Build standalone Macintosh application
+        run: bash packaging/macos/build-app.sh
+
+      - name: Upload Macintosh installer
+        uses: actions/upload-artifact@v5
+        with:
+          name: scout-dmg-${{ matrix.arch }}
+          path: |
+            dist/*.dmg
+            dist/*.sha256
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Prepare native build artifact
         run: |
           mkdir -p build-artifact
