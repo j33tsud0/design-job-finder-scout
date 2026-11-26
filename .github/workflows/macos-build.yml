@@ -1,0 +1,81 @@
+name: Scout macOS Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - opportunity-scout
+
+permissions:
+  contents: read
+
+jobs:
+  native-build:
+    name: macOS ${{ matrix.arch }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            arch: arm64
+          - runner: macos-15-intel
+            arch: x86_64
+
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Verify native architecture
+        run: |
+          uname -a
+          sw_vers
+          test "$(uname -m)" = "${{ matrix.arch }}"
+          clang --version
+
+      - name: Install native build dependencies
+        run: |
+          brew install jansson pkg-config curl
+          echo "PKG_CONFIG_PATH=$(brew --prefix curl)/lib/pkgconfig:$(brew --prefix jansson)/lib/pkgconfig" >> "$GITHUB_ENV"
+
+      - name: Compile native C engine
+        run: |
+          make -C scout clean
+          make -C scout CC=clang
+          make -C scout test
+          file scout/scout
+          otool -L scout/scout
+
+      - name: Provision Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt -c constraints.txt
+          python -m pip install pytest
+
+      - name: Run regression tests
+        run: |
+          python -m pytest tests/ -q
+
+      - name: Prepare native build artifact
+        run: |
+          mkdir -p build-artifact
+          cp scout/scout build-artifact/
+          cp LICENSE build-artifact/
+          file scout/scout > build-artifact/architecture.txt
+          otool -L scout/scout > build-artifact/dependencies.txt
+          shasum -a 256 build-artifact/scout > build-artifact/SHA256SUMS.txt
+
+      - name: Upload native build
+        uses: actions/upload-artifact@v4
+        with:
+          name: scout-macos-${{ matrix.arch }}
+          path: build-artifact/
+          retention-days: 7
