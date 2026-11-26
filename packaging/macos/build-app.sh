@@ -11,6 +11,7 @@ test "$(uname -s)" = "Darwin"
 test -x scout/scout
 
 WORK="$(mktemp -d)"
+WORK="$(cd "$WORK" && pwd -P)"
 trap 'rm -rf "$WORK"' EXIT
 
 OUT="$ROOT/dist"
@@ -51,13 +52,28 @@ test -x "$PY"
 SITE="$("$PY" -c \
     'import sysconfig; print(sysconfig.get_path("purelib"))')"
 
-case "$SITE" in
-    "$RUNTIME"/*) ;;
-    *)
-        echo "[!] Python package directory escaped the runtime."
-        exit 1
-        ;;
-esac
+echo "[*] Runtime directory: $RUNTIME"
+echo "[*] Python package directory: $SITE"
+
+"$PY" - "$RUNTIME" "$SITE" <<'PATHCHECK'
+import sys
+from pathlib import Path
+
+runtime = Path(sys.argv[1]).resolve(strict=True)
+site = Path(sys.argv[2]).resolve()
+
+print(f"[*] Resolved runtime: {runtime}")
+print(f"[*] Resolved package directory: {site}")
+
+if site == runtime or not site.is_relative_to(runtime):
+    raise SystemExit(
+        "[!] Python package directory genuinely escaped the runtime."
+    )
+
+print("[+] Python package directory containment verified")
+PATHCHECK
+
+SITE="$("$PY" -c 'import sysconfig; from pathlib import Path; print(Path(sysconfig.get_path("purelib")).resolve())')"
 
 echo "[*] Installing bundled Python dependencies..."
 
