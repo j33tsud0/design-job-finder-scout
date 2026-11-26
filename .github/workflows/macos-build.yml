@@ -27,7 +27,7 @@ jobs:
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Verify native architecture
         run: |
@@ -43,14 +43,10 @@ jobs:
 
       - name: Compile native C engine
         run: |
-          make -C scout clean
-          make -C scout CC=clang
-          make -C scout test
-          file scout/scout
-          otool -L scout/scout
+          bash packaging/macos/build-native.sh
 
       - name: Provision Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
@@ -74,7 +70,7 @@ jobs:
           shasum -a 256 build-artifact/scout > build-artifact/SHA256SUMS.txt
 
       - name: Upload native build
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: scout-macos-${{ matrix.arch }}
           path: build-artifact/
